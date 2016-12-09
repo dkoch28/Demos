@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="styles.css">
+<script src="prototype.js" type="text/javascript" ></script>
+
+</head>
+<body>
+
+<h1>Ajax Movie and Actor Search</h1>
+
+
+Title(prefix)<input type="text" name="title" id="title" autocomplete="off" onkeyup="test(event)">
+<div id="actorLastDiv">Actor:<input type="text" name="actor" id="actor" autocomplete="off" onkeyup="test(event)">(last name, first name)**No Space After Comma!</div>
+<div id="showList"><table id="movieTable"></table></div>
+</body>
+
+<script>
+function test(e){
+	ajaxLookup(e);
+}
+function ajaxLookup(event) {
+	// Input has changed so erase prior status
+	// read username
+	var ititle = document.getElementById('title').value;
+	var actorFull = document.getElementById('actor').value;
+	var iFirst = "";
+	var iLast = "";
+	if (actorFull == null){
+		iFirst = null;
+		iLast = null;
+	} else {
+	var partsOfStr = actorFull.split(",");
+	if (partsOfStr.length == 1){
+		 iLast = partsOfStr[0];
+		 iFirst = null;
+	}
+	if (partsOfStr.length == 2){
+		 iLast = partsOfStr[0];
+		 iFirst = partsOfStr[1];
+	}
+}
+	// Only bother making a query if something is entered:
+		/*
+		 * Set up and launch the Ajax request using the prototype.js
+		 * helper class.  The parameters field consists of stuff to POST.
+		 */
+		new Ajax.Request("moviesearch.php",
+			{	
+				onSuccess: ajaxCompleted,
+				onFailure: ajaxFailed,
+				onException: ajaxFailed,
+				parameters: {title: ititle, actorFirst: iFirst, actorLast: iLast}
+			}
+		);
+}
+function ajaxCompleted(ajax){
+	var data = JSON.parse(ajax.responseText);
+	if (data != null){
+	var temp = document.getElementById('movieTable');
+	var addText = "<tr><th>Title</th><th>Actor</th><th>Year</th></tr>";
+	for (var i = 0; i < data.length; i++){
+		addText += "<tr><td>" + data[i].name + "</td><td>" + data[i].first_name + " " +  data[i].last_name + "</td><td>" + data[i].year  + "</td></tr>";
+	}
+	temp.innerHTML = addText;
+	temp.style.border = "thin solid black";
+	}
+}
+function ajaxFailed(ajax){
+	var temp = document.getElementById('showList');
+	temp.innerHTML = "Reload page";
+}
+
+
+</script>
+</html>
